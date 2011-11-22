@@ -4,7 +4,6 @@ import sys
 
 import logging
 
-import SOAPpy
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -27,8 +26,9 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 
-jira_con = JiraConnection()
-(auth, jira, project_name) = (jira_con.auth, jira_con.client.service, jira_con.project_name)
+#jira_con = JiraConnection()
+jira_con = JiraConnection(provider='SOAPpy')
+(auth, jira, project_name) = (jira_con.auth, jira_con.service, jira_con.project_name)
 
 project = jira.getProjectByKey(auth, project_name)
 
@@ -102,7 +102,7 @@ for version in jira.getVersions(auth, project_name) + [None]:
         issue_model.subtask=issue_types[issue.type].subTask
         issue_model.summary=issue.summary
         issue_model.assignee=issue.assignee
-        issue_model.created_at=issue.created
+        issue_model.created_at=jira_con.to_datetime(issue.created)
         issue_model.status = statuses[int(issue.status)]
         if version:
             issue_model.fix_version = version_model
@@ -110,12 +110,16 @@ for version in jira.getVersions(auth, project_name) + [None]:
             issue_model.fix_version = None
 
         if issue.duedate:
-            issue_model.due_date = issue.duedate
+            issue_model.due_date = jira_con.to_datetime(issue.duedate)
 
         issue_model = session.merge(issue_model)
 
         for worklog in jira.getWorklogs(auth, issue.key):
             if int(issue.id) in existing_issues:
+                if isinstance(worklog.id, list): # Weird thing: SUDS based client returns arrays instead of simple attrs
+                    print "Issue:", issue
+                    print "Weird worklog:", worklog
+                    sys.exit(1)
                 worklog_model = session.query(Worklog).get(int(worklog.id))
             else:
                 worklog_model = None
@@ -123,7 +127,7 @@ for version in jira.getVersions(auth, project_name) + [None]:
             if not worklog_model:
                 worklog_model = Worklog(id=int(worklog.id))
 
-            worklog_model.created_at=worklog.created
+            worklog_model.created_at=jira_con.to_datetime(worklog.created)
             worklog_model.author=worklog.author
             worklog_model.time_spent=worklog.timeSpentInSeconds
             worklog_model.issue=issue_model
