@@ -48,8 +48,6 @@ for status in jira.getStatuses(auth):
 
 active_versions = []
 
-existing_issues = frozenset(int(e[0]) for e in session.query(Issue.id).all())
-
 versions = None
 if len(sys.argv) > 1:
     versions = sys.argv[1:]
@@ -58,7 +56,10 @@ for version in jira.getVersions(auth, project_name) + [None]:
     if not version and versions:
         continue
 
-    release_date = version.releaseDate if version and version.releaseDate is not None else None
+    if version and version.releaseDate is not None:
+        release_date = jira_con.to_datetime(version.releaseDate)
+    else:
+        release_date = None
 
     if versions and not version.name in versions:
         continue
@@ -86,13 +87,19 @@ for version in jira.getVersions(auth, project_name) + [None]:
         issues = jira.getIssuesFromJqlSearch(auth,
             "project = %s and fixVersion = '%s'" % (project_name, version.name),
             jira_con.int_arg(1000))
+        existing_issues = set(int(e[0]) for e in session.query(Issue.id)\
+            .filter(Issue.fix_version == version_model))
     else:
         issues = jira.getIssuesFromJqlSearch(auth,
             "project = %s and fixVersion is EMPTY" % project_name,
             jira_con.int_arg(1000))
+        existing_issues = set(int(e[0]) for e in session.query(Issue.id)\
+            .filter(Issue.fix_version == None))
 
     for issue in issues:
-        if int(issue.id) in existing_issues:
+        existing_issue = int(issue.id) in existing_issues
+        if existing_issue:
+            existing_issues.remove(int(issue.id))
             issue_model = session.query(Issue).get(int(issue.id))
         else:
             issue_model = Issue(id=int(issue.id))
@@ -115,7 +122,7 @@ for version in jira.getVersions(auth, project_name) + [None]:
         issue_model = session.merge(issue_model)
 
         for worklog in jira.getWorklogs(auth, issue.key):
-            if int(issue.id) in existing_issues:
+            if existing_issue:
                 if isinstance(worklog.id, list): # Weird thing: SUDS based client returns arrays instead of simple attrs
                     print "Issue:", issue
                     print "Weird worklog:", worklog
@@ -133,6 +140,11 @@ for version in jira.getVersions(auth, project_name) + [None]:
             worklog_model.issue=issue_model
 
             session.merge(worklog_model)
+
+    for issue_id in existing_issues:
+        issue = session.query(Issue).get(issue_id)
+        logger.info("Removing deleted issue: %s", issue.key)
+        session.delete(issue)
 
 session.commit()
 
@@ -153,9 +165,8 @@ for version in (active_versions if versions else active_versions + [None]):
             for subtask in subtasks:
                 try:
                     subtask_model = session.query(Issue).filter(Issue.key == subtask.key).one()
+                    subtask_model.parent = issue
                 except NoResultFound:
                     logger.warn("Can't find subtask %s of task %s", subtask.key, issue.key)
-
-                subtask_model.parent = issue
 
 session.commit()
