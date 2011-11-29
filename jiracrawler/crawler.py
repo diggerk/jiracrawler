@@ -18,17 +18,19 @@ logging.root.setLevel(logging.DEBUG)
 logging.getLogger('suds').setLevel(logging.INFO)
 
 
-engine = create_engine('mysql://root:@localhost/xcom_jira', echo=False)
+#jira_con = JiraConnection()
+jira_con = JiraConnection(provider='SOAPpy')
+(auth, jira, project_name) = (jira_con.auth, jira_con.service, jira_con.project_name)
+
+
+db_name = '%s_jira' % jira_con.project_name.lower()
+engine = create_engine('mysql://root:@localhost/%s' % db_name, echo=False)
 engine.connect()
 
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 
-
-#jira_con = JiraConnection()
-jira_con = JiraConnection(provider='SOAPpy')
-(auth, jira, project_name) = (jira_con.auth, jira_con.service, jira_con.project_name)
 
 project = jira.getProjectByKey(auth, project_name)
 
@@ -53,9 +55,6 @@ if len(sys.argv) > 1:
     versions = sys.argv[1:]
 
 for version in jira.getVersions(auth, project_name) + [None]:
-    if not version and versions:
-        continue
-
     if version and version.releaseDate is not None:
         release_date = jira_con.to_datetime(version.releaseDate)
     else:
@@ -97,6 +96,12 @@ for version in jira.getVersions(auth, project_name) + [None]:
             .filter(Issue.fix_version == None))
 
     for issue in issues:
+        if version:
+            issue_versions = sorted(issue.fixVersions, lambda v1, v2: \
+                int(v2.id) - int(v1.id))
+            if issue_versions[0].name != version.name:
+                continue
+
         existing_issue = int(issue.id) in existing_issues
         if existing_issue:
             existing_issues.remove(int(issue.id))
