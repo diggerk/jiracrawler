@@ -13,10 +13,11 @@ from jiracrawler.model import Base, Version, Issue, Worklog, Status
 from jirareports.common import JiraConnection
 
 
-logger = logging.getLogger(__name__)
 logging.root.addHandler(logging.StreamHandler())
 logging.root.setLevel(logging.DEBUG)
 logging.getLogger('suds').setLevel(logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 class JiraCrawler(object):
@@ -188,11 +189,13 @@ class JiraCrawler(object):
 
         self.session.commit()
 
-
-if __name__ == '__main__':
+def main():
     versions = None
     if len(sys.argv) > 1:
         versions = sys.argv[1:]
     crawler = JiraCrawler()
     crawler.update_statuses()
     crawler.update_issues_and_worklogs(versions)
+
+if __name__ == '__main__':
+    main()
