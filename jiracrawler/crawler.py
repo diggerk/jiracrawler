@@ -13,22 +13,21 @@ from jiracrawler.model import Base, Version, Issue, Worklog, Status
 from jirareports.common import JiraConnection
 
 
-logging.root.addHandler(logging.StreamHandler())
-logging.root.setLevel(logging.DEBUG)
-logging.getLogger('suds').setLevel(logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 
 class JiraCrawler(object):
+
     def __init__(self):
-        #jira_con = JiraConnection()
-        self.jira_con = JiraConnection(provider='SOAPpy')
+        logger.info("Establishing JIRA connection")
+        self.jira_con = JiraConnection()
+        #self.jira_con = JiraConnection(provider='SOAPpy')
         (self.auth, self.jira, self.project_name) = (
             self.jira_con.auth, self.jira_con.service, self.jira_con.project_name)
 
         db_name = '%s_jira' % self.jira_con.project_name.lower()
-        self.engine = create_engine('mysql://root:@localhost/%s' % db_name, echo=False)
+        logger.info("Using database %s to store data")
+        self.engine = create_engine('mysql://root:mysql123@localhost/%s' % db_name, echo=False)
         self.engine.connect()
 
         Base.metadata.create_all(self.engine)
@@ -37,12 +36,15 @@ class JiraCrawler(object):
         self.session = Session()
 
         self.project = self.jira.getProjectByKey(self.auth, self.project_name)
+        logger.info("Project code: %s", self.project.__dict__)
 
         self.issue_types = {}
         for t in self.jira.getSubTaskIssueTypesForProject(self.auth, self.project.id):
             self.issue_types[t.id] = t
         for t in self.jira.getIssueTypesForProject(self.auth, self.project.id):
             self.issue_types[t.id] = t
+
+        logger.info("Received %s issue types", len(self.issue_types))
 
     def store_issue(self, issue, issue_model, version_model):
         issue_model.key = issue.key
@@ -98,7 +100,7 @@ class JiraCrawler(object):
                         logger.info("Archiving version %s", version.name)
                         version_model.archived = True
                 else:
-                    version_model = self.Version(id=int(version.id), name=version.name,
+                    version_model = Version(id=int(version.id), name=version.name,
                         release_date=release_date, archived=version.archived)
                     self.session.add(version_model)
                     self.session.flush()
@@ -190,6 +192,10 @@ class JiraCrawler(object):
         self.session.commit()
 
 def main():
+    logging.root.addHandler(logging.StreamHandler())
+    logging.root.setLevel(logging.DEBUG)
+    logging.getLogger('suds').setLevel(logging.INFO)
+
     versions = None
     if len(sys.argv) > 1:
         versions = sys.argv[1:]
