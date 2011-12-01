@@ -12,5 +12,20 @@ setup(
     version="0.1",
     packages=find_packages(),
     namespace_packages=['jiracrawler'],
-    install_requires=['setuptools']
+    install_requires=[
+	'jirareports',
+        'MySQL-python==1.2.2',
+        'lockfile==0.8',
+        'python-daemon==1.5.5',
+        'sqlalchemy==0.7.3',
+        'SOAPpy==0.12.5'
+    ],
+    dependency_links=[
+        "https://github.com/aklochkovgd/jirareports/tarball/master#egg=jirareports"
+    ],
+    entry_points={
+        'console_scripts': [
+            'jiracrawler=jiracrawler.crawler:main'
+        ]
+    }
 )
