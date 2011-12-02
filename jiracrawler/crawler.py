@@ -36,7 +36,6 @@ class JiraCrawler(object):
         self.session = Session()
 
         self.project = self.jira.getProjectByKey(self.auth, self.project_name)
-        logger.info("Project code: %s", self.project.__dict__)
 
         self.issue_types = {}
         for t in self.jira.getSubTaskIssueTypesForProject(self.auth, self.project.id):
