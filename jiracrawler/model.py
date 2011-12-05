@@ -47,6 +47,7 @@ class Issue(Base):
     subtasks = relationship("Issue", backref=backref("parent", remote_side=[id]))
     fix_version = relationship("Version", backref=backref("issues", order_by=id))
     status = relationship("Status")
+    worklogs = relationship("Worklog", backref=backref("issue", remote_side=[id]), cascade="delete")
 
 
 class Worklog(Base):
@@ -55,6 +56,3 @@ class Worklog(Base):
     author = Column(String(20), nullable=False)
     time_spent = Column(Integer, nullable=False)
     issue_id = Column(Integer, ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
-
-    issue = relationship("Issue", backref=backref("worklogs", order_by=id))
-
