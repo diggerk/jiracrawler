@@ -26,7 +26,7 @@ class JiraCrawler(object):
             self.jira_con.auth, self.jira_con.service, self.jira_con.project_name)
 
         db_name = '%s_jira' % self.jira_con.project_name.lower()
-        logger.info("Using database %s to store data")
+        logger.info("Using database %s to store data", db_name)
         self.engine = create_engine('mysql://root:@localhost/%s' % db_name, echo=False)
         self.engine.connect()
 

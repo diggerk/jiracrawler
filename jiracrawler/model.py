@@ -54,7 +54,7 @@ class Worklog(Base):
     created_at = Column(DateTime(), nullable=False)
     author = Column(String(20), nullable=False)
     time_spent = Column(Integer, nullable=False)
-    issue_id = Column(Integer, ForeignKey('issue.id'), nullable=False)
+    issue_id = Column(Integer, ForeignKey('issue.id', ondelete='CASCADE'), nullable=False)
 
     issue = relationship("Issue", backref=backref("worklogs", order_by=id))
 
