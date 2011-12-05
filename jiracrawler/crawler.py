@@ -164,6 +164,8 @@ class JiraCrawler(object):
                 logger.info("Removing issue %s deleted from version %s", issue.key,
                     version.name if version else 'Unscheduled')
                 self.session.delete(issue)
+                if issue_id in existing_issues:
+                    existing_issues.remove(issue_id)
 
             self.session.commit()
 
