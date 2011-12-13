@@ -18,12 +18,12 @@ instance via JIRA SOAP API. It's very useful in many curcumstances
 and it gives you an ability to run any ad-hoc SQL requests to analyze
 the data.
 
-Model
-=====
+Database Model
+==============
 Crawler fetches JIRA versions, issue statuses, issues and worklogs.
 This diagram describes database model used to store crawled data.
 
-![Crawler Database Diagram](model.jpg "Crawler Database Diagram")
+![Crawler Database Diagram](jiracrawler/model.jpg "Crawler Database Diagram")
 
 
 Configuration
