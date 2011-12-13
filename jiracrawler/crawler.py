@@ -18,16 +18,30 @@ logger = logging.getLogger(__name__)
 
 class JiraCrawler(object):
 
-    def __init__(self):
+    def __init__(self, profile_name=None):
         logger.info("Establishing JIRA connection")
-        self.jira_con = JiraConnection()
+        self.jira_con = JiraConnection(profile_name=profile_name)
         #self.jira_con = JiraConnection(provider='SOAPpy')
         (self.auth, self.jira, self.project_name) = (
             self.jira_con.auth, self.jira_con.service, self.jira_con.project_name)
 
-        db_name = '%s_jira' % self.jira_con.project_name.lower()
+        if 'db_name' in self.jira_con.config:
+            db_name = self.jira_con.config['db_name']
+        else:
+            db_name = '%s_jira' % self.jira_con.project_name.lower()
+
+        if 'db_user' in self.jira_con.config:
+            db_user = self.jira_con.config['db_user']
+        else:
+            db_user = 'root'
+
+        if 'db_pass' in self.jira_con.config:
+            db_pass = self.jira_con.config['db_pass']
+        else:
+            db_pass = ''
+
         logger.info("Using database %s to store data", db_name)
-        self.engine = create_engine('mysql://root:@localhost/%s' % db_name, echo=False)
+        self.engine = create_engine('mysql://%s:%s@localhost/%s' % (db_user, db_pass, db_name), echo=False)
         self.engine.connect()
 
         Base.metadata.create_all(self.engine)
@@ -197,10 +211,13 @@ def main():
     logging.root.setLevel(logging.DEBUG)
     logging.getLogger('suds').setLevel(logging.INFO)
 
+    profile_name = None
     versions = None
     if len(sys.argv) > 1:
-        versions = sys.argv[1:]
-    crawler = JiraCrawler()
+        profile_name = sys.argv[1]
+    if len(sys.argv) > 2:
+        versions = sys.argv[2:]
+    crawler = JiraCrawler(profile_name)
     crawler.update_statuses()
     crawler.update_issues_and_worklogs(versions)
 
