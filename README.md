@@ -23,7 +23,7 @@ Database Model
 Crawler fetches JIRA versions, issue statuses, issues and worklogs.
 This diagram describes database model used to store crawled data.
 
-![Crawler Database Diagram](jiracrawler/model.jpg "Crawler Database Diagram")
+![Crawler Database Diagram](jiracrawler/raw/master/model.jpg "Crawler Database Diagram")
 
 
 Configuration
