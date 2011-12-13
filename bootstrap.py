@@ -68,10 +68,8 @@ for k, v in sys.modules.items():
 
 is_jython = sys.platform.startswith('java')
 
-#setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
-#distribute_source = 'http://python-distribute.org/distribute_setup.py'
-setuptools_source = 'http://184.106.149.52/media/dists/ez_setup.py'
-distribute_source = 'http://184.106.149.52/media/dists/distribute_setup.py'
+setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
+distribute_source = 'http://python-distribute.org/distribute_setup.py'
 
 # parsing arguments
 def normalize_to_url(option, opt_str, value, parser):

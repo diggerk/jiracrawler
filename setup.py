@@ -14,7 +14,7 @@ setup(
     namespace_packages=['jiracrawler'],
     install_requires=[
 	'jirareports',
-        'MySQL-python==1.2.2',
+        'MySQL-python>=1.2.2',
         'lockfile==0.8',
         'python-daemon==1.5.5',
         'sqlalchemy==0.7.3',
