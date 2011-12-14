@@ -13,15 +13,14 @@ is not under your control at all.
 
 SQL reporting for JIRA
 ----------------------
-This crawler allows go fetch issues and worklogs from any JIRA 
-instance via JIRA SOAP API. It's very useful in many curcumstances
-and it gives you an ability to run any ad-hoc SQL requests to analyze
-the data.
+This crawler fetches issues and worklogs from JIRA 
+via JIRA SOAP API. It's useful to have power of SQL to do any kind of 
+ad-hoc reporting.
 
 Database Model
 ==============
 Crawler fetches JIRA versions, issue statuses, issues and worklogs.
-This diagram describes database model used to store crawled data.
+This is the database model used to store crawled data.
 
 ![Crawler Database Diagram](jiracrawler/raw/master/model.jpg "Crawler Database Diagram")
 
@@ -36,12 +35,18 @@ Sample configuration:
     password=mysecret
     uri=https://issues.mycompany.net/rpc/soap/jirasoapservice-v2?wsdl
     project=INTPRJ
+    db_name=intprj_jira
+    db_user=jira
+    db_pass=secret
 
     [customer_jira]
     username=aklochkov
     password=asecret
     uri=https://customersite.com/rpc/soap/jirasoapservice-v2?wsdl
     project=TWIX
+    db_name=twix_jira
+    db_user=jira
+    db_pass=secret
 
 Installation and usage
 ======================
@@ -49,18 +54,13 @@ Installation and usage
 
     sudo python setup.py install 
 
-2. Create a separate MySQL database for each project you're analyzing,
-   using scheme 'projectcode_jira', so for the sample config above it's
-   needed to create databases 'intprj_jira' and 'twix_jira'.
-   TBD: currently the crawler accesses databases using 'root' as MySQL user
-        name and providing empty password.
-
-3. Run this to clone or update all versions of a project INTPRJ.
+2. Create a separate MySQL database for each project you're analyzing.
+3. Run crawler to clone all versions of a project INTPRJ.
 
     jira_crawler INTPRJ
 
-4. Provide version name as an additional parameter to clone or update a particular
-   version
+4. Later repeat step 3 to fetch updates. Pprovide version name as an 
+   additional parameter to clone or update a particular version
 
     jira_crawler INTPRJ version_1
 
