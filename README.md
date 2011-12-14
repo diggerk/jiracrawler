@@ -70,17 +70,41 @@ Sample queries
 Amount of work done today per developer
 ---------------------------------------
 
-    select v.name version, w.author, cast(sum(time_spent) / 3600 as decimal(5,1)) hours from worklog w join issue i on i.id=w.issue_id join version v on v.id=i.fix_version_id where date(w.created_at) = str_to_date('$DATE', '%Y-%m-%d') group by v.name, w.author order by v.release_date, v.name, author;
+    select v.name version, w.author, cast(sum(time_spent) / 3600 as decimal(5,1)) hours
+    from worklog w
+    join issue i on i.id=w.issue_id 
+    join version v on v.id=i.fix_version_id 
+    where date(w.created_at) = str_to_date('$DATE', '%Y-%m-%d') 
+    group by v.name, w.author order by v.release_date, v.name, author;
 
 Work done in a given date range grouped by developer
 ----------------------------------------------------
 
-    select v.name, author, cast(sum(time_spent)/3600 as decimal(5,1)) hours from worklog w join issue i on i.id=w.issue_id left outer join version v on v.id=i.fix_version_id where date(w.created_at) >= str_to_date('$DATE1', '%Y-%m-%d') and date(w.created_at) <= str_to_date('$DATE2', '%Y-%m-%d') group by v.name, author;
+    select v.name, author, cast(sum(time_spent)/3600 as decimal(5,1)) hours 
+    from worklog w 
+    join issue i on i.id=w.issue_id 
+    left outer join version v on v.id=i.fix_version_id 
+    where date(w.created_at) >= str_to_date('$DATE1', '%Y-%m-%d') and 
+        date(w.created_at) <= str_to_date('$DATE2', '%Y-%m-%d') 
+    group by v.name, author;
 
 Work done on a given date grouped by top-level tasks
 ----------------------------------------------------
 
-    select v.name version, i2.key, substring(i2.summary, 1, 40) summary, date, due_date, cast(sum(time_spent) / 3600 as decimal(5,1)) hours, s.name status from (select case subtask when 1 then i.parent_id else i.id end parent, date(w.created_at) date, w.time_spent from worklog w join issue i on i.id=w.issue_id where date(w.created_at) >= str_to_date('$DATE', '%Y-%m-%d')) t1 join issue i2 on i2.id=parent join version v on v.id=i2.fix_version_id join status s on s.id=i2.status_id group by v.name, i2.key, i2.summary, date order by v.release_date, v.name, date, parent;
+    select v.name version, i2.key, substring(i2.summary, 1, 40) summary, date, 
+        due_date, cast(sum(time_spent) / 3600 as decimal(5,1)) hours, s.name status 
+    from (
+        select case subtask when 1 then i.parent_id else i.id end parent, 
+            date(w.created_at) date, w.time_spent 
+        from worklog w 
+        join issue i on i.id=w.issue_id 
+        where date(w.created_at) >= str_to_date('$DATE', '%Y-%m-%d')
+    ) t1 
+    join issue i2 on i2.id=parent 
+    join version v on v.id=i2.fix_version_id 
+    join status s on s.id=i2.status_id 
+    group by v.name, i2.key, i2.summary, date 
+    order by v.release_date, v.name, date, parent;
 
 
 Automated reporting
