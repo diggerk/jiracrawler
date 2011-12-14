@@ -106,6 +106,8 @@ Work done on a given date grouped by top-level tasks
     group by v.name, i2.key, i2.summary, date 
     order by v.release_date, v.name, date, parent;
 
+    <script src="https://gist.github.com/1475750.js?file=work_per_top_tasks.sql"></script>
+
 
 Automated reporting
 ===================
