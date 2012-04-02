@@ -72,7 +72,11 @@ class JiraCrawler(object):
         if issue.duedate:
             issue_model.due_date = self.jira_con.to_datetime(issue.duedate)
 
-        return self.session.merge(issue_model)
+        try:
+            return self.session.merge(issue_model)
+        except:
+            logger.error("Can't merge issue %s" % issue.key")
+            raise
 
     def update_issue(self, version_model, issue):
         issue_model = self.session.query(Issue).get(int(issue.id))
