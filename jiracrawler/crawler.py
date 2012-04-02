@@ -75,7 +75,7 @@ class JiraCrawler(object):
         try:
             return self.session.merge(issue_model)
         except:
-            logger.error("Can't merge issue %s" % issue.key")
+            logger.error("Can't merge issue %s" % issue.key)
             raise
 
     def update_issue(self, version_model, issue):
